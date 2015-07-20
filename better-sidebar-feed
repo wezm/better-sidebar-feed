@@ -77,7 +77,7 @@ channel.at_xpath('./generator').content =
   'https://github.com/wezm/better-sidebar-feed'
 channel.at_xpath('./lastBuildDate').content = Time.now.rfc822
 channel.at_xpath('./atom:link[@rel="self"]')['href'] =
-  'http://feeds.wezm.net/sidebar.xml'
+  'http://files.wezm.net/sidebar.xml'
 channel.xpath('./atom:link[@rel="hub"]',
               'atom' => 'http://www.w3.org/2005/Atom').remove
 channel.xpath('./feedburner:info',
