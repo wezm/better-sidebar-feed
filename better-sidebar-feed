@@ -1,0 +1,86 @@
+#!/usr/bin/env ruby
+
+require 'nokogiri'
+require 'open-uri'
+
+class SidebarLink
+
+  attr_reader :uri
+
+  def initialize(uri)
+    @uri = URI.parse(uri)
+  end
+
+  def content
+    @content ||= destination_uri.read(open_timeout: 10, read_timeout: 30)
+  end
+
+  def doc
+    # TODO: Handle non-UTF-8 pages
+    @doc ||= Nokogiri::HTML(content, nil, 'utf-8')
+  end
+
+  def favicon
+    "http://icons.duckduckgo.com/ip2/#{destination_uri.host}.ico"
+  end
+
+  def replace_description(description)
+    root = Nokogiri::HTML.fragment('')
+    existing_children = description.children.unlink
+
+    root.add_child(Nokogiri::XML::Node.new('img', root).tap { |img|
+      img['src'] = favicon
+      img['width'] = '16'
+      img['height'] = '16'
+    })
+    root << ' '
+    root.add_child(Nokogiri::XML::Node.new('a', root).tap { |a|
+      a['href'] = destination_uri.to_s
+      a << destination_uri.to_s
+    })
+    root.add_child(Nokogiri::XML::Node.new('p', root).tap { |p|
+      p << summary
+    })
+    root.add_child(existing_children)
+
+    description.content = root.to_html
+  end
+
+  def destination_uri
+    @destination_uri = URI.parse(query_string['url'])
+  end
+
+  def query_string
+    @query_string ||= Hash[uri.query.split('&').map { |param| param.split('=').map { |value| URI.unescape(value) } }]
+  end
+
+  def summary
+    meta_description = doc.at_css('meta[name="description"]')
+    meta_description ? meta_description['content'] : ""
+  end
+end
+
+FEED_URI = URI.parse 'http://feeds.sidebar.io/SidebarFeed'
+
+feed = Nokogiri::XML(FEED_URI.read, nil, 'utf-8')
+channel = feed.at_xpath('/rss/channel')
+
+channel.xpath('./item').each do |item|
+  link = item.at_xpath('./link').text
+  description = item.at_xpath('./description')
+
+  page = SidebarLink.new(link)
+  page.replace_description(description)
+end
+
+channel.at_xpath('./generator').content =
+  'https://github.com/wezm/better-sidebar-feed'
+channel.at_xpath('./lastBuildDate').content = Time.now.rfc822
+channel.at_xpath('./atom:link[@rel="self"]')['href'] =
+  'http://feeds.wezm.net/sidebar.xml'
+channel.xpath('./atom:link[@rel="hub"]',
+              'atom' => 'http://www.w3.org/2005/Atom').remove
+channel.xpath('./feedburner:info',
+              'feedburner' => 'http://rssnamespace.org/feedburner/ext/1.0').remove
+
+puts feed.to_xml
