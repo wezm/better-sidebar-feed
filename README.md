@@ -11,3 +11,15 @@ Why is it better?
 * Icon & URL of linked article are shown.
 * A brief description of article is included in entries (when available).
 
+How is it install/generated?
+----------------------------
+
+(Mostly for my own documentation)
+
+```shell
+bundle install --path vendor/bundle
+```
+
+```crontab
+0 0,12 * * * cd /home/wmoore/better-sidebar-feed && bundle exec ./better-sidebar-feed > sidebar.xml && mv sidebar.xml /var/www/files.wezm.net/sidebar.xml
+```
