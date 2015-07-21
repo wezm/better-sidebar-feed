@@ -57,6 +57,8 @@ class SidebarLink
   def summary
     meta_description = doc.at_css('meta[name="description"]')
     meta_description ? meta_description['content'] : ""
+  rescue StandardError => e
+    "Summary unavailable (#{e.message})."
   end
 end
 
