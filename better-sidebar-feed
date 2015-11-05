@@ -22,6 +22,8 @@ class SidebarLink
 
   def favicon
     "http://icons.duckduckgo.com/ip2/#{destination_uri.host}.ico"
+  rescue URI::InvalidURIError
+    "http://icons.duckduckgo.com/ip2/example.com.ico"
   end
 
   def replace_description(description)
