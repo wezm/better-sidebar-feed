@@ -37,8 +37,8 @@ class SidebarLink
     })
     root << ' '
     root.add_child(Nokogiri::XML::Node.new('a', root).tap { |a|
-      a['href'] = destination_uri.to_s
-      a << destination_uri.to_s
+      a['href'] = destination_url
+      a << destination_url
     })
     root.add_child(Nokogiri::XML::Node.new('p', root).tap { |p|
       p << summary
@@ -48,8 +48,12 @@ class SidebarLink
     description.content = root.to_html
   end
 
+  def destination_url
+    query_string['url']
+  end
+
   def destination_uri
-    @destination_uri = URI.parse(query_string['url'])
+    @destination_uri = URI.parse(destination_url)
   end
 
   def query_string
