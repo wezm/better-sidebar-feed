@@ -12,7 +12,17 @@ class SidebarLink
   end
 
   def content
-    @content ||= destination_uri.read(open_timeout: 10, read_timeout: 30)
+    begin
+      @content ||= destination_uri.read(open_timeout: 10, read_timeout: 30)
+    rescue ArgumentError => e
+      # open_timeout was added as an option in ruby 2.2, fallback to not
+      # specifying it for older ruby versions.
+      if e.message.include?("unrecognized option: open_timeout")
+        @content = destination_uri.read(read_timeout: 30)
+      else
+        raise e
+      end
+    end
   end
 
   def doc
