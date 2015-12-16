@@ -40,6 +40,9 @@ class SidebarLink
     root = Nokogiri::HTML.fragment('')
     existing_children = description.children.unlink
 
+    root.add_child(Nokogiri::XML::Node.new('p', root).tap { |p|
+      p << summary
+    })
     root.add_child(Nokogiri::XML::Node.new('img', root).tap { |img|
       img['src'] = favicon
       img['width'] = '16'
@@ -49,9 +52,6 @@ class SidebarLink
     root.add_child(Nokogiri::XML::Node.new('a', root).tap { |a|
       a['href'] = destination_url
       a << destination_url
-    })
-    root.add_child(Nokogiri::XML::Node.new('p', root).tap { |p|
-      p << summary
     })
     root.add_child(existing_children)
 
