@@ -78,7 +78,7 @@ class SidebarLink
   end
 end
 
-FEED_URI = URI.parse 'http://feeds.sidebar.io/SidebarFeed'
+FEED_URI = URI.parse 'http://sidebar.io/feed.xml'
 
 feed = Nokogiri::XML(FEED_URI.read, nil, 'utf-8')
 channel = feed.at_xpath('/rss/channel')
@@ -89,6 +89,9 @@ channel.xpath('./item').each do |item|
 
   page = SidebarLink.new(link)
   page.replace_description(description)
+
+  # The content element just has an image in it
+  item.xpath('./content').remove
 end
 
 channel.at_xpath('./generator').content =
